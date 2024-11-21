@@ -45,4 +45,5 @@ app.*.map.json
 # Firebase Configuration
 node_modules/
 firebase_options.dart
+firebase-service-account.json
 .env
