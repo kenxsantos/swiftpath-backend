@@ -5,6 +5,7 @@ const http = require("http"); // Import missing http module
 const socketIo = require("socket.io");
 const cors = require("cors");
 const axios = require("axios");
+const dotenv = require("dotenv");
 
 // Initialize Express App
 const app = express();
@@ -60,7 +61,7 @@ async function requestRoutes() {
     const originLat = currentCoordinates.coordinates[1]; // Latitude is the second element in the coordinates array
     const originLng = currentCoordinates.coordinates[0];
 
-    const apiKey = "AIzaSyC2cU6RHwIR6JskX2GHe-Pwv1VepIHkLCg";
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY; // Replace with your Google Maps API key
     const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${originLat},${originLng}&destination=${destination.lat},${destination.lng}&alternatives=true&key=${apiKey}`;
 
     // Send request to Google Directions API
