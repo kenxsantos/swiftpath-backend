@@ -5,7 +5,7 @@ const http = require("http"); // Import missing http module
 const socketIo = require("socket.io");
 const cors = require("cors");
 const axios = require("axios");
-const dotenv = require("dotenv");
+require("dotenv").config();
 
 // Initialize Express App
 const app = express();
@@ -29,19 +29,28 @@ let destinationCoordinates = null;
 app.use(cors({ origin: "*" }));
 app.use(bodyParser.json());
 
-app.post("/destination", async (req, res) => {
+app.post("/current-location", async (req, res) => {
   try {
     const destination = req.body.destination;
+    const origin = req.body.origin;
 
-    if (!destination || !destination.lat || !destination.lng) {
+    if (!destination || !origin) {
       return res.status(400).send("Invalid destination payload");
     }
 
-    // Store the destination coordinates
     destinationCoordinates = destination;
-    console.log("Destination received:", destinationCoordinates);
-
-    res.status(200).send("Destination received successfully");
+    currentCoordinates = origin;
+    console.log(
+      "Destination received:",
+      destinationCoordinates,
+      currentCoordinates
+    );
+    res
+      .status(200)
+      .send(
+        "Location received successfully. Calculating routes to destination...",
+        await requestRoutes()
+      );
   } catch (error) {
     console.error("Error handling destination:", error);
     res.status(500).send("Error processing destination");
@@ -52,10 +61,14 @@ async function requestRoutes() {
   try {
     if (!currentCoordinates || !destinationCoordinates) {
       console.log(
+        `Current coordinates ${currentCoordinates} or destination coordinates ${destinationCoordinates} are not available.`
+      );
+      console.log(
         "Current coordinates or destination coordinates are not available."
       );
       return;
     }
+
     // Prepare the destination coordinates directly from parameters
     let destination = destinationCoordinates;
     const originLat = currentCoordinates.coordinates[1]; // Latitude is the second element in the coordinates array
