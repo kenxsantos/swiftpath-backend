@@ -123,6 +123,25 @@ app.post("/webhook", async (req, res) => {
 
       // Process different event types
       switch (event.event_type) {
+        case "geospark:moving-geofence:nearby":
+          notification = {
+            notification: {
+              title: "An Emergency Vehicle is approaching!",
+              body: `Please make way for the emergency vehicle.`,
+            },
+            data: {
+              user_id: event.user_id,
+              location_id: event.location_id,
+            },
+            topic: "moving_geofence_nearby_notifications",
+          };
+          io.emit("moving_geofence_update", {
+            location_id: event.location_id,
+            nearby_user_id: event.nearby_user_id,
+            recorded_at: event.recorded_at,
+            location: event.location,
+          });
+          break;
         case "geospark:geofence:entry":
           notification = {
             notification: {
@@ -141,7 +160,6 @@ app.post("/webhook", async (req, res) => {
             recorded_at: event.recorded_at,
             location: event.location,
           });
-
           await requestRoutes();
           break;
         case "geospark:geofence:Exit":
@@ -185,7 +203,7 @@ app.post("/webhook", async (req, res) => {
           break;
         default:
           console.log("Unhandled event type:", event.event_type);
-          continue; // Skip unhandled event types
+          continue;
       }
 
       // Send notification using Firebase Cloud Messaging
