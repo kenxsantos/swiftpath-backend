@@ -24,10 +24,25 @@ admin.initializeApp({
 
 let currentCoordinates = null;
 let destinationCoordinates = null;
+let vehicleLocation = {};
 
 // Parse incoming JSON
 app.use(cors({ origin: "*" }));
 app.use(bodyParser.json());
+
+app.post("/emergency-vehicle", (req, res) => {
+  const { userId, location } = req.body;
+  vehicleLocation = {
+    latitude: location.latitude,
+    longitude: location.longitude,
+  };
+
+  console.log(
+    `Updated location: ${vehicleLocation.latitude}, ${vehicleLocation.longitude}`
+  );
+  io.emit("locationUpdate", vehicleLocation); // Broadcast to all connected users
+  res.status(200).send("Location updated");
+});
 
 app.post("/current-location", async (req, res) => {
   try {
@@ -48,9 +63,10 @@ app.post("/current-location", async (req, res) => {
     res
       .status(200)
       .send(
-        "Location received successfully. Calculating routes to destination...",
-        await requestRoutes()
+        "Location received successfully. Calculating routes to destination..."
       );
+    // io.emit("location_update", { coordinates: currentCoordinates }); // Emit the updated coordinates
+    await requestRoutes();
   } catch (error) {
     console.error("Error handling destination:", error);
     res.status(500).send("Error processing destination");
@@ -71,11 +87,10 @@ async function requestRoutes() {
 
     // Prepare the destination coordinates directly from parameters
     let destination = destinationCoordinates;
-    const originLat = currentCoordinates.coordinates[1]; // Latitude is the second element in the coordinates array
-    const originLng = currentCoordinates.coordinates[0];
+    let origin = currentCoordinates;
 
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY; // Replace with your Google Maps API key
-    const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${originLat},${originLng}&destination=${destination.lat},${destination.lng}&alternatives=true&key=${apiKey}`;
+    const apiKey = "AIzaSyC2cU6RHwIR6JskX2GHe-Pwv1VepIHkLCg"; // Replace with your Google Maps API key
+    const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&alternatives=true&key=${apiKey}`;
 
     // Send request to Google Directions API
     const response = await axios.get(url);
@@ -212,7 +227,7 @@ app.post("/webhook", async (req, res) => {
             },
             topic: "location_change_notifications",
           };
-          await requestRoutes();
+          // await requestRoutes();
           break;
         default:
           console.log("Unhandled event type:", event.event_type);
