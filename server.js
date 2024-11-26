@@ -18,6 +18,7 @@ const io = socketIo(server, {
 
 // Initialize Firebase Admin SDK
 const serviceAccount = require("./firebase-service-account.json"); // Replace with your Firebase service account key
+const { timeStamp } = require("console");
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
@@ -30,18 +31,39 @@ let vehicleLocation = {};
 app.use(cors({ origin: "*" }));
 app.use(bodyParser.json());
 
-app.post("/emergency-vehicle", (req, res) => {
-  const { userId, location } = req.body;
-  vehicleLocation = {
-    latitude: location.latitude,
-    longitude: location.longitude,
-  };
+app.post("/report-incident", async (req, res) => {
+  console.log(`Test: ${req.body}`);
+
+  const {
+    latitude,
+    longitude,
+    status,
+    reporter_email,
+    reporter_name,
+    timestamp,
+    image_url,
+  } = req.body;
 
   console.log(
-    `Updated location: ${vehicleLocation.latitude}, ${vehicleLocation.longitude}`
+    latitude,
+    longitude,
+    status,
+    reporter_email,
+    reporter_name,
+    timestamp,
+    image_url
   );
-  io.emit("locationUpdate", vehicleLocation); // Broadcast to all connected users
-  res.status(200).send("Location updated");
+  // const { userId, location } = req.body;
+  // vehicleLocation = {
+  //   latitude: location.latitude,
+  //   longitude: location.longitude,
+  // };
+
+  // console.log(
+  //   `Updated location: ${vehicleLocation.latitude}, ${vehicleLocation.longitude}`
+  // );
+  // io.emit("locationUpdate", vehicleLocation);
+  // res.status(200).send("Location updated");
 });
 
 app.post("/current-location", async (req, res) => {
