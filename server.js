@@ -17,7 +17,8 @@ const io = socketIo(server, {
 });
 
 // Initialize Firebase Admin SDK
-const serviceAccount = require("./firebase-service-account.json"); // Replace with your Firebase service account key
+const serviceAccountPath = "/etc/secrets/firebase-service-account.json";
+const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, "utf8"));
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: "https://swiftpath-77a56-default-rtdb.firebaseio.com/",
